@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	origin := "http://localhost:8080/"
+	origin := "http://localhost:8080/test"
 	url := "ws://localhost:8080/echo"
 	var msg = make([]byte, 512)
 
@@ -38,6 +38,7 @@ func main() {
 			ws.Close()
 			break
 		}
+
 		time.Sleep(1 * time.Second)
 
 	}

@@ -8,6 +8,7 @@ import (
 )
 
 func echoHandler(ws *websocket.Conn) {
+	log.Println(ws.RemoteAddr())
 	_, err := ws.Write([]byte("exit"))
 	if err != nil {
 		log.Fatal(err)
