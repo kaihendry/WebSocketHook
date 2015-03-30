@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	origin := "http://localhost:8080/test"
+	id := "http://localhost:8080/test"
 	pond := "ws://localhost:8080/fish"
 	var msg = make([]byte, 512)
 
@@ -23,7 +23,7 @@ func main() {
 
 Loop:
 	for {
-		ws, err = websocket.Dial(pond, "", origin)
+		ws, err = websocket.Dial(pond, "", id)
 		if err != nil {
 			log.Println("Connection failed, re-trying ", failcount)
 			failcount++

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"html"
 	"log"
 	"net/http"
 
@@ -15,7 +17,7 @@ func fishHandler(ws *websocket.Conn) {
 	// But how?
 
 	log.Println(ws.RemoteAddr(), "is waiting")
-	_, err := ws.Write([]byte("http://example.com"))
+	_, err := ws.Write([]byte("htp://example.com"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,6 +26,12 @@ func fishHandler(ws *websocket.Conn) {
 
 func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
+	http.HandleFunc("/hook", func(w http.ResponseWriter, r *http.Request) {
+		// Be good to show what's connected
+		// And send referer URL (or some other URL) to fishHandler
+		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	})
+
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
