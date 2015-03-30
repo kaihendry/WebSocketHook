@@ -15,6 +15,7 @@ func main() {
 	var err error
 	var ws *websocket.Conn
 	failcount := 1
+
 	for {
 		ws, err = websocket.Dial(url, "", origin)
 		if err != nil {
@@ -25,11 +26,19 @@ func main() {
 		}
 		log.Printf("Connected to %s", url)
 
-		_, err = ws.Read(msg)
+		n, err := ws.Read(msg)
+
 		if err != nil {
 			log.Println("Error reading", err)
 		}
-		log.Printf("Receive: %s\n", msg)
+
+		log.Printf("Received: %s\n", msg)
+
+		if string(msg[:n]) == "exit" {
+			ws.Close()
+			break
+		}
+		time.Sleep(1 * time.Second)
 
 	}
 
