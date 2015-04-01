@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	id := "http://localhost:8080/test"
+	id := "http://localhost:8080/unique-identifer-goes-here"
 	pond := "ws://localhost:8080/fish"
 	var msg = make([]byte, 512)
 

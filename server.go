@@ -4,32 +4,35 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"sync"
 	"net/http"
 
 	"golang.org/x/net/websocket"
 )
 
+var mu sync.RWMutex
+var sockets = make(map[string]*websocket.Conn)
+
 func fishHandler(ws *websocket.Conn) {
-
-	// I guess it's waiting here
-
-	// Need to send it a message from hook
-	// But how?
-
-	log.Println(ws.RemoteAddr(), "is waiting")
-	_, err := ws.Write([]byte("htp://example.com"))
+	id := ws.RemoteAddr().String()
+	sockets[ws.RemoteAddr().String()] = ws
+	// wait here
+	log.Println(id, "is waiting")
+	msg := make([]byte, 512)
+	n, err := ws.Read(msg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Sent")
+	log.Printf("Received: %s\n", msg[:n])
+	// Client should exit
 }
 
 func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
-	http.HandleFunc("/hook", func(w http.ResponseWriter, r *http.Request) {
-		// Be good to show what's connected
-		// And send referer URL (or some other URL) to fishHandler
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		for key, _ := range sockets {
+			fmt.Fprintf(w, "%q\n", html.EscapeString(key))
+		}
 	})
 
 	err := http.ListenAndServe(":8080", nil)
