@@ -27,8 +27,23 @@ func fishHandler(ws *websocket.Conn) {
 	// Client should exit
 }
 
+func hook(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	log.Println("Here with", id)
+	w.Write([]byte("Attempting to hook " + id))
+	if w, ok := sockets[id]; ok {
+		log.Println("Hooking", id)
+		_, err := w.Write([]byte("http://example.com"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("Expecting to delete/client up socket")
+	}
+}
+
 func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
+	http.HandleFunc("/hook/", hook)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		for key, _ := range sockets {
 			fmt.Fprintf(w, "%q\n", html.EscapeString(key))
