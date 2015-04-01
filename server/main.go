@@ -11,8 +11,8 @@ import (
 var sockets = make(map[string]*websocket.Conn)
 
 func fishHandler(ws *websocket.Conn) {
-	id := ws.RemoteAddr().String()
-	sockets[ws.RemoteAddr().String()] = ws
+	id := ws.RemoteAddr().String() + "-" + ws.Request().RemoteAddr
+	sockets[id] = ws
 
 	// Wait here
 	log.Println(id, "is waiting")
@@ -44,8 +44,13 @@ func hook(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
 	http.HandleFunc("/hook/", hook)
+
+	http.HandleFunc("/client/", func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, "../client/index.html")
+	    })
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		t, _ := template.ParseFiles("server/index.html")
+		t, _ := template.ParseFiles("index.html")
 		keys := make([]string, 0, len(sockets))
 		for k := range sockets {
 			keys = append(keys, k)
@@ -53,7 +58,7 @@ func main() {
 		t.Execute(w, keys)
 	})
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}

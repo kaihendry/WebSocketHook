@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+function WebSocketTest()
+{
+	if ("WebSocket" in window)
+	{
+		console.log("WebSocket is supported by your Browser!");
+		// Let us open a web socket
+		var ws = new WebSocket("ws://sg.webconverger.com/fish");
+
+		ws.onmessage = function (evt) 
+		{ 
+			var received_msg = evt.data;
+			console.log("Message is received...", received_msg);
+			window.location = received_msg;
+		};
+
+		ws.onclose = function()
+		{ 
+			// websocket is closed.
+			console.log("Connection is closed..."); 
+		};
+	}
+	else
+	{
+		// The browser doesn't support WebSocket
+		console.log("WebSocket NOT supported by your Browser!");
+	}
+}
+</script>
+</head>
+<body onload=WebSocketTest()>
+<h1>Websocket test</h1>
+</body>
+</html>
