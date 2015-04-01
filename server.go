@@ -1,43 +1,43 @@
 package main
 
 import (
-	"fmt"
-	"html"
 	"log"
-	"sync"
 	"net/http"
+	"text/template"
 
 	"golang.org/x/net/websocket"
 )
 
-var mu sync.RWMutex
 var sockets = make(map[string]*websocket.Conn)
 
 func fishHandler(ws *websocket.Conn) {
 	id := ws.RemoteAddr().String()
 	sockets[ws.RemoteAddr().String()] = ws
-	// wait here
+
+	// Wait here
 	log.Println(id, "is waiting")
 	msg := make([]byte, 512)
-	n, err := ws.Read(msg)
+	_, err := ws.Read(msg)
+
 	if err != nil {
-		log.Fatal(err)
+		// Client should exit
+		log.Println(id, "client disconnect", err)
+		delete(sockets, id)
 	}
-	log.Printf("Received: %s\n", msg[:n])
-	// Client should exit
 }
 
 func hook(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
-	log.Println("Here with", id)
-	w.Write([]byte("Attempting to hook " + id))
-	if w, ok := sockets[id]; ok {
-		log.Println("Hooking", id)
-		_, err := w.Write([]byte("http://example.com"))
+	rurl := r.Referer()
+	log.Println("Hook requested on", id, "with referer", rurl)
+	if ws, ok := sockets[id]; ok {
+		w.Write([]byte("Hooking " + id))
+		_, err := ws.Write([]byte(rurl))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error whilst writing", err)
 		}
-		log.Println("Expecting to delete/client up socket")
+	} else {
+		http.NotFound(w, r)
 	}
 }
 
@@ -45,9 +45,12 @@ func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
 	http.HandleFunc("/hook/", hook)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		for key, _ := range sockets {
-			fmt.Fprintf(w, "%q\n", html.EscapeString(key))
+		t, _ := template.ParseFiles("server/index.html")
+		keys := make([]string, 0, len(sockets))
+		for k := range sockets {
+			keys = append(keys, k)
 		}
+		t.Execute(w, keys)
 	})
 
 	err := http.ListenAndServe(":8080", nil)

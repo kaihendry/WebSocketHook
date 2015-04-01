@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Websocket to Webhook</title>
+</head>
+<body>
+<h1>Connected sockets</h1>
+<ol>
+{{ range . }}
+<li><a href="/hook/?id={{ . }}">{{ . }}</a></li>
+{{ end }}
+</ol>
+<p>Source: <a href="https://github.com/kaihendry/WebSocketHook">WebSocketHook</a></p>
+</body>
+</html>
