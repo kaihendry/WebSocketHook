@@ -8,7 +8,7 @@
 <h1>Connected Web sockets</h1>
 <ol>
 {{ range . }}
-<li><a href="/hook/?id={{ . }}">{{ . }}</a> - <code>curl --referer http://example.com "http://<span class=host></span>/hook/?id={{.}}"</code></li>
+<li><a href="/hook/?id={{. | urlquery}}">{{ . }}</a> - <code>curl --referer http://example.com "http://<span class=host></span>/hook/?id={{. | html}}"</code></li>
 {{ end }}
 </ol>
 <p><a href=/client>Connect your browser</a></p>
