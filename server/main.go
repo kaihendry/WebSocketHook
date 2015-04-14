@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	"net/url"
 	"text/template"
 
 	"golang.org/x/net/websocket"
@@ -29,13 +30,15 @@ func fishHandler(ws *websocket.Conn) {
 
 func hook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request from", r.RemoteAddr)
-	err := r.ParseForm()
+	r.ParseForm()
+	_, err := url.ParseRequestURI(r.FormValue("webhook"))
 	if err != nil {
-		//handle error http.Error() for example
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	log.Println(r.Form)
-	w.Write([]byte("Hooking " + strconv.Itoa(len(r.Form["m"])) + " machine(s) with " + r.FormValue("webhook")))
+
+	fmt.Fprintf(w, "Hooking %d client(s) with %s", len(r.Form["m"]), r.FormValue("webhook"))
 
 	for _, id := range r.Form["m"] {
 		if ws, ok := sockets[id]; ok {
