@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"text/template"
 
 	"golang.org/x/net/websocket"
@@ -11,7 +12,7 @@ import (
 var sockets = make(map[string]*websocket.Conn)
 
 func fishHandler(ws *websocket.Conn) {
-	id := ws.RemoteAddr().String() + "-" + ws.Request().RemoteAddr
+	id := ws.RemoteAddr().String() + "-" + ws.Request().RemoteAddr + "-" + ws.Request().UserAgent()
 	sockets[id] = ws
 
 	// Wait here
@@ -27,30 +28,40 @@ func fishHandler(ws *websocket.Conn) {
 }
 
 func hook(w http.ResponseWriter, r *http.Request) {
-	id := r.FormValue("id")
-	rurl := r.Referer()
-	log.Println("Hook requested on", id, "with referer", rurl)
-	if ws, ok := sockets[id]; ok {
-		w.Write([]byte("Hooking " + id))
-		_, err := ws.Write([]byte(rurl))
-		if err != nil {
-			log.Fatal("Error whilst writing", err)
-		}
-	} else {
-		http.NotFound(w, r)
+	log.Println("Request from", r.RemoteAddr)
+	err := r.ParseForm()
+	if err != nil {
+		//handle error http.Error() for example
+		return
 	}
+	log.Println(r.Form)
+	w.Write([]byte("Hooking " + strconv.Itoa(len(r.Form["m"])) + " machine(s) with " + r.FormValue("webhook")))
+
+	for _, id := range r.Form["m"] {
+		if ws, ok := sockets[id]; ok {
+			_, err := ws.Write([]byte(r.FormValue("webhook")))
+			if err != nil {
+				log.Fatal("Error whilst writing", err)
+			} else {
+				log.Println("Successfully hooked", id)
+			}
+		} else {
+			log.Println(id, "not waiting")
+		}
+	}
+
 }
 
 func main() {
 	http.Handle("/fish", websocket.Handler(fishHandler))
 	http.HandleFunc("/hook/", hook)
 
-	http.HandleFunc("/client/", func(w http.ResponseWriter, r *http.Request) {
-        http.ServeFile(w, r, "../client/index.html")
-	    })
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		t, _ := template.ParseFiles("index.html")
+		http.ServeFile(w, r, "templates/client.html")
+	})
+
+	http.HandleFunc("/admin/", func(w http.ResponseWriter, r *http.Request) {
+		t, _ := template.ParseFiles("templates/admin.html")
 		keys := make([]string, 0, len(sockets))
 		for k := range sockets {
 			keys = append(keys, k)

@@ -6,21 +6,24 @@ function WebSocketTest()
 {
 	if ("WebSocket" in window)
 	{
-		console.log("WebSocket is supported by your Browser!");
 		// Let us open a web socket
-		var ws = new WebSocket("ws://sg.webconverger.com/fish");
+		var server = "ws://" + window.location.host + "/fish";
+		var ws = new WebSocket(server);
+		document.body.style.background = "green";
+		var h1 = document.getElementsByTagName("h1");
+		h1.item(0).childNodes.item(0).nodeValue = "Connected to " + server;
 
-		ws.onmessage = function (evt) 
-		{ 
+		ws.onmessage = function (evt)
+		{
 			var received_msg = evt.data;
 			console.log("Message is received...", received_msg);
 			window.location = received_msg;
 		};
 
 		ws.onclose = function()
-		{ 
-			// websocket is closed.
-			console.log("Connection is closed..."); 
+		{
+			document.body.style.background = "red";
+			console.log("Connection is closed...");
 		};
 	}
 	else
@@ -30,6 +33,9 @@ function WebSocketTest()
 	}
 }
 </script>
+<style>
+body { background-color: red; }
+</style>
 </head>
 <body onload=WebSocketTest()>
 <h1>Websocket test</h1>

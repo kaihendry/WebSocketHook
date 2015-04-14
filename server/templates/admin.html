@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Websocket reel</title>
+</head>
+<body>
+<h1>Connected Web socket client(s)</h1>
+
+<form action=/hook/ method=post>
+<input required type=url value=http://example.com name=webhook>
+<input type=submit>
+
+<ol>
+{{ range . }}
+<li><label><input checked type="checkbox" name="m" value="{{ . }}">{{ . }}</label></li>
+{{ end }}
+</ol>
+
+</form>
+
+<p>Source: <a href="https://github.com/kaihendry/WebSocketHook">WebSocketHook</a></p>
+
+</body>
+</html>
